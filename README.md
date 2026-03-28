@@ -197,20 +197,36 @@ Object values do not all change at the same time. Each object has its own **upda
 
 ## Load Statistics
 
-While the simulator runs, the dashboard updates device stats at the interval defined by `defaults.statsIntervalSeconds` (default: 5 s). The table shows **per-device** metrics:
+The dashboard shows a **per-device load table** updated every second. Columns fall into two categories:
+
+### Count columns (lifetime totals)
+
+These increment by 1 for each actual request and never reset:
 
 | Column | Meaning |
 |--------|---------|
-| **Total** | Total inbound requests (lifetime) |
-| **RP** | ReadProperty requests |
-| **RPM** | ReadPropertyMultiple requests |
-| **WP** | WriteProperty requests |
-| **COVSb** | SubscribeCOV requests (includes resubscriptions after expiry) |
-| **WhoIs** | Who-Is discovery hits |
-| **COVNot** | Outbound COV notifications sent |
+| **Total** | Sum of all inbound requests (RP + RPM + WP + COVSb + WhoIs) |
+| **RP** | ReadProperty — single-property reads |
+| **RPM** | ReadPropertyMultiple — batch reads |
+| **WP** | WriteProperty — value writes |
+| **COVSb** | SubscribeCOV — subscription requests (includes resubscriptions after expiry) |
+| **WhoIs** | Who-Is — device discovery requests |
+| **COVNot** | Outbound COV notifications sent (not counted in Total — these are responses, not requests) |
 | **Errors** | Error responses sent |
 | **Clients** | Unique client addresses seen |
-| **Req/min** | Current rate / peak rate |
+
+### Rate columns (requests per minute)
+
+These measure **speed**, not count. A single request in a quiet 1-second window produces an instant rate of 60 req/min — this is expected and doesn't mean 60 requests occurred.
+
+| Column | Meaning |
+|--------|---------|
+| **Req/min** | Current smoothed rate (exponential moving average). Decays gradually after bursts instead of snapping to 0 |
+| **1m Peak** | Highest instant rate seen in the last 60 seconds. Useful for spotting recent bursts |
+| **All Peak** | Highest instant rate ever (includes the initial client scan at startup) |
+
+> **Why does Req/min show 24.0 but Total only went up by 1?**
+> Rate and count measure different things. One request in one second = 60 req/min instant rate, smoothed by EMA to ~24. The rate tells you *how fast* requests are coming; Total tells you *how many* have come.
 
 Use this to identify over-polling clients or uneven load distribution across devices.
 
