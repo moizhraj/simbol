@@ -36,6 +36,9 @@ public static class BacnetDeviceFactory
             var range = groupConfig.ValueRange ?? defaults.ValueRange;
             var baseIntervalMs = groupConfig.UpdateIntervalMs ?? defaults.UpdateIntervalMs;
 
+            // Jitter: ±jitterPercent of base interval
+            var jitterFraction = defaults.JitterPercent / 100.0;
+
             for (int i = 0; i < groupConfig.Count; i++)
             {
                 objectCounter++;
@@ -46,9 +49,9 @@ public static class BacnetDeviceFactory
                 var phaseOffset = rng.NextDouble() * 60.0;
                 var simulator = ValueSimulatorFactory.Create(pattern, range, groupConfig.DefaultValue, phaseOffset);
 
-                // Jittered update interval: ±50% of base interval
-                var jitterFactor = 0.5 + rng.NextDouble(); // 0.5 to 1.5
-                var jitteredIntervalMs = (int)(baseIntervalMs * jitterFactor);
+                // Jittered update interval
+                var jitterFactor = (1.0 - jitterFraction) + rng.NextDouble() * (2.0 * jitterFraction);
+                var jitteredIntervalMs = Math.Max(100, (int)(baseIntervalMs * jitterFactor));
 
                 var (storageObj, simObj) = BacnetObjectFactory.CreateObject(
                     bacnetType, instanceNumber, objectName,

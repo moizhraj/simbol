@@ -9,6 +9,7 @@
     "vendorName": "Simbol Simulator",
     "simulationIntervalMs": 1000,
     "updateIntervalMs": 5000,
+    "jitterPercent": 50,
     "valueRange": { "min": 0.0, "max": 100.0 },
     "simulationPattern": "sine"
   },

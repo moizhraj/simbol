@@ -65,6 +65,7 @@ The config file has three top-level sections: `network`, `defaults`, and `device
     "vendorName": "Simbol Simulator",// Default vendor name
     "simulationIntervalMs": 1000,    // Engine tick interval in milliseconds
     "updateIntervalMs": 5000,        // Default per-object update interval (ms)
+    "jitterPercent": 50,             // Jitter range (0-100) applied to update intervals
     "valueRange": { "min": 0.0, "max": 100.0 },  // Default value range
     "simulationPattern": "sine"      // Default simulation pattern
   },
@@ -106,6 +107,7 @@ The config file has three top-level sections: `network`, `defaults`, and `device
     "vendorName": "Simbol Simulator",
     "simulationIntervalMs": 1000,
     "updateIntervalMs": 5000,
+    "jitterPercent": 50,
     "valueRange": { "min": 0.0, "max": 100.0 },
     "simulationPattern": "sine"
   },
@@ -175,7 +177,8 @@ Object values do not all change at the same time. Each object has its own **upda
 
 - **`defaults.updateIntervalMs`** — the baseline update interval for all objects (default: `5000` ms).
 - **`objects.<type>.updateIntervalMs`** — override the interval for a specific object group.
-- **Auto-jitter** — every individual object gets a ±50 % jitter applied to its baseline interval (whether from `defaults` or an explicit group override). This means a 5 000 ms interval produces actual per-object intervals spread between 2 500 ms and 7 500 ms, so objects never update in lockstep.
+- **`defaults.jitterPercent`** — the jitter range applied to update intervals (default: `50`, meaning ±50%). Set to `0` to disable jitter and update all objects at exact intervals.
+- **Auto-jitter** — every individual object gets the configured jitter applied to its baseline interval. A `jitterPercent` of `50` with a 5 000 ms interval produces per-object intervals between 2 500 ms and 7 500 ms, so objects never update in lockstep.
 
 > **Tip:** For a realistic HVAC simulation, use `"updateIntervalMs": 10000` (10 s) for temperature sensors and `"updateIntervalMs": 30000` (30 s) for slower-changing values like humidity.
 

@@ -185,4 +185,23 @@ public class BacnetDeviceFactoryTests
             Assert.InRange(obj.UpdateIntervalMs, 5000, 15000);
         }
     }
+
+    [Fact]
+    public void CreateDevice_ZeroJitter_AllIntervalsEqual()
+    {
+        var defaults = CreateDefaults();
+        defaults.JitterPercent = 0;
+
+        var config = new DeviceConfig
+        {
+            InstanceId = 4000, Name = "NoJitter", Description = "Test",
+            Objects = new()
+            {
+                ["analog-input"] = new() { Count = 5, UpdateIntervalMs = 8000 }
+            }
+        };
+        var device = BacnetDeviceFactory.CreateDevice(config, defaults);
+
+        Assert.All(device.SimulatedObjects, o => Assert.Equal(8000, o.UpdateIntervalMs));
+    }
 }
