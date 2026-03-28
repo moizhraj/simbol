@@ -4,6 +4,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Events;
+using Spectre.Console;
+using Simbol.Cli;
 using Simbol.Core.Configuration;
 using Simbol.Engine.Services;
 
@@ -36,9 +38,18 @@ runCommand.SetAction(async (parseResult, cancellationToken) =>
 
     var logLevel = verbose ? LogEventLevel.Debug : quiet ? LogEventLevel.Warning : LogEventLevel.Information;
 
+    var logFileName = $"simbol-{DateTime.Now:yyyyMMdd-HHmmss}.log";
+    var logFilePath = Path.Combine(Path.GetTempPath(), logFileName);
+
+    var display = new SpectreConsoleDisplay();
+    display.SetConfigPath(configPath);
+    display.SetLogFilePath(logFilePath);
+
     Log.Logger = new LoggerConfiguration()
         .MinimumLevel.Is(logLevel)
-        .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+        .WriteTo.File(logFilePath,
+            outputTemplate: "[{Timestamp:HH:mm:ss.fff} {Level:u3}] {Message:lj}{NewLine}{Exception}",
+            flushToDiskInterval: TimeSpan.FromSeconds(1))
         .CreateLogger();
 
     try
@@ -51,6 +62,8 @@ runCommand.SetAction(async (parseResult, cancellationToken) =>
             .ConfigureServices(services =>
             {
                 services.AddSingleton(config);
+                services.AddSingleton<IConsoleDisplay>(display);
+                services.AddSingleton<RecentActivityBuffer>();
                 services.AddSingleton<CovManager>();
                 services.AddSingleton<BacnetServiceHandler>();
                 services.AddHostedService<SimulatorHostedService>();
@@ -59,16 +72,21 @@ runCommand.SetAction(async (parseResult, cancellationToken) =>
             })
             .Build();
 
-        await host.RunAsync(cancellationToken);
+        var hostTask = host.RunAsync(cancellationToken);
+        var displayTask = display.RunAsync(cancellationToken);
+
+        await Task.WhenAll(hostTask, displayTask);
     }
     catch (Exception ex) when (ex is not OperationCanceledException)
     {
         Log.Fatal(ex, "Simulator failed to start");
+        AnsiConsole.MarkupLine($"[red]Fatal: {Markup.Escape(ex.Message)}[/]");
         return 1;
     }
     finally
     {
         await Log.CloseAndFlushAsync();
+        AnsiConsole.MarkupLine($"\n[grey]Log file: {Markup.Escape(logFilePath)}[/]");
     }
 
     return 0;

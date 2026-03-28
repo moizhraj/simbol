@@ -10,12 +10,14 @@ public class BacnetServiceHandler
     private readonly Dictionary<uint, SimulatedDevice> _devices = new();
     private readonly CovManager _covManager;
     private readonly ILogger<BacnetServiceHandler> _logger;
+    private readonly IConsoleDisplay _display;
     private BacnetClient? _client;
 
-    public BacnetServiceHandler(CovManager covManager, ILogger<BacnetServiceHandler> logger)
+    public BacnetServiceHandler(CovManager covManager, ILogger<BacnetServiceHandler> logger, IConsoleDisplay display)
     {
         _covManager = covManager;
         _logger = logger;
+        _display = display;
     }
 
     public void RegisterDevice(SimulatedDevice device)
@@ -56,6 +58,7 @@ public class BacnetServiceHandler
     private void HandleWhoIs(BacnetClient sender, BacnetAddress adr, int lowLimit, int highLimit)
     {
         var clientAddr = adr.ToString();
+        var matchCount = 0;
         foreach (var device in _devices.Values)
         {
             if ((lowLimit == -1 && highLimit == -1) ||
@@ -64,8 +67,11 @@ public class BacnetServiceHandler
                 device.Stats.RecordWhoIs(clientAddr);
                 sender.Iam(device.DeviceId, BacnetSegmentations.SEGMENTATION_BOTH);
                 _logger.LogDebug("I-Am sent for device {DeviceId} ({Name})", device.DeviceId, device.Name);
+                matchCount++;
             }
         }
+
+        _display.AddActivity($"Who-Is from {adr} → {matchCount} device(s) responded");
     }
 
     private void HandleReadProperty(BacnetClient sender, BacnetAddress adr, byte invokeId,
@@ -167,6 +173,7 @@ public class BacnetServiceHandler
             });
         }
 
+        _display.AddActivity($"ReadPropertyMultiple on {targetDevice.Name} ({properties.Count} objects)");
         sender.ReadPropertyMultipleResponse(adr, invokeId, sender.GetSegmentBuffer(maxSegments), values);
     }
 
@@ -201,6 +208,7 @@ public class BacnetServiceHandler
                     simObj.IsOverridden = true;
                     _logger.LogInformation("Object {ObjectId} on device {DeviceId} overridden via WriteProperty",
                         objectId, device.DeviceId);
+                    _display.AddActivity($"WriteProperty on {device.Name}/{objectId} → overridden");
                 }
 
                 sender.SimpleAckResponse(adr, BacnetConfirmedServices.SERVICE_CONFIRMED_WRITE_PROPERTY, invokeId);
@@ -229,6 +237,7 @@ public class BacnetServiceHandler
             if (device.Storage.FindObject(monitoredObjectIdentifier) == null) continue;
 
             device.Stats.RecordSubscribeCov(adr.ToString());
+            _display.AddActivity($"SubscribeCOV from {adr} on {device.Name}/{monitoredObjectIdentifier}");
 
             if (cancellationRequest)
             {
