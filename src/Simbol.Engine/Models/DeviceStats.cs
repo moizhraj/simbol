@@ -16,6 +16,7 @@ public class DeviceStats
     private long _errorCount;
     private long _requestsInWindow;
     private double _peakRequestsPerMinute;
+    private bool _firstWindowSkipped;
 
     private readonly ConcurrentDictionary<string, byte> _uniqueClients = new();
 
@@ -99,8 +100,15 @@ public class DeviceStats
         if (CurrentRequestsPerMinute < 0.5)
             CurrentRequestsPerMinute = 0;
 
-        if (instantRate > _peakRequestsPerMinute)
+        // Skip the first window for peak tracking — startup burst is not representative
+        if (!_firstWindowSkipped)
+        {
+            _firstWindowSkipped = true;
+        }
+        else if (instantRate > _peakRequestsPerMinute)
+        {
             _peakRequestsPerMinute = instantRate;
+        }
 
         return CurrentRequestsPerMinute;
     }
