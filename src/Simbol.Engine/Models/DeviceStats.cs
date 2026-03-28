@@ -16,7 +16,10 @@ public class DeviceStats
     private long _errorCount;
     private long _requestsInWindow;
     private double _peakRequestsPerMinute;
-    private bool _firstWindowSkipped;
+
+    // Rolling 1-minute peak: store instant rates from recent windows
+    private readonly Queue<double> _recentRates = new();
+    private double _rollingPeakPerMinute;
 
     private readonly ConcurrentDictionary<string, byte> _uniqueClients = new();
 
@@ -29,6 +32,7 @@ public class DeviceStats
     public long ErrorCount => Interlocked.Read(ref _errorCount);
     public long RequestsInWindow => Interlocked.Read(ref _requestsInWindow);
     public double PeakRequestsPerMinute => _peakRequestsPerMinute;
+    public double RollingPeakPerMinute => _rollingPeakPerMinute;
     public double CurrentRequestsPerMinute { get; private set; }
     public DateTime LastRequestTime { get; private set; }
     public int UniqueClientCount => _uniqueClients.Count;
@@ -85,6 +89,7 @@ public class DeviceStats
     /// <summary>
     /// Computes requests/minute from the current window using an exponential moving average
     /// so the rate decays smoothly instead of snapping to 0 between bursts.
+    /// Also tracks a 1-minute rolling peak from recent windows.
     /// Should only be called once per stats interval (not on every display refresh).
     /// </summary>
     public double ResetWindow(double windowSeconds)
@@ -100,15 +105,16 @@ public class DeviceStats
         if (CurrentRequestsPerMinute < 0.5)
             CurrentRequestsPerMinute = 0;
 
-        // Skip the first window for peak tracking — startup burst is not representative
-        if (!_firstWindowSkipped)
-        {
-            _firstWindowSkipped = true;
-        }
-        else if (instantRate > _peakRequestsPerMinute)
-        {
+        // All-time peak
+        if (instantRate > _peakRequestsPerMinute)
             _peakRequestsPerMinute = instantRate;
-        }
+
+        // Rolling 1-minute peak: keep last N windows where N = 60/windowSeconds
+        var maxWindows = Math.Max(1, (int)(60.0 / windowSeconds));
+        _recentRates.Enqueue(instantRate);
+        while (_recentRates.Count > maxWindows)
+            _recentRates.Dequeue();
+        _rollingPeakPerMinute = _recentRates.Count > 0 ? _recentRates.Max() : 0;
 
         return CurrentRequestsPerMinute;
     }

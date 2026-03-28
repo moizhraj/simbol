@@ -67,7 +67,7 @@ public class SpectreConsoleDisplay : IConsoleDisplay
         rows.Add(new Text(""));
 
         rows.Add(BuildStatsTable());
-        rows.Add(new Markup("[grey]  RP=ReadProperty  RPM=ReadPropMultiple  WP=WriteProperty  COVSb=SubscribeCOV (incl. resubscriptions)  COVNot=COV Notifications[/]"));
+        rows.Add(new Markup("[grey]  RP=ReadProperty  RPM=ReadPropMultiple  WP=WriteProperty  COVSb=SubscribeCOV (incl. resubscriptions)  COVNot=COV Notifications  1m Peak=last 60s  All Peak=all-time[/]"));
         rows.Add(new Text(""));
 
         rows.Add(BuildActivityPanel());
@@ -126,7 +126,9 @@ public class SpectreConsoleDisplay : IConsoleDisplay
         table.AddColumn(new TableColumn("[bold]COVNot[/]").RightAligned());
         table.AddColumn(new TableColumn("[bold]Errors[/]").RightAligned());
         table.AddColumn(new TableColumn("[bold]Clients[/]").RightAligned());
-        table.AddColumn(new TableColumn("[bold]Req (cur/peak)/min[/]").RightAligned());
+        table.AddColumn(new TableColumn("[bold]Req/min[/]").RightAligned());
+        table.AddColumn(new TableColumn("[bold]1m Peak[/]").RightAligned());
+        table.AddColumn(new TableColumn("[bold]All Peak[/]").RightAligned());
 
         if (devices == null || devices.Count == 0)
         {
@@ -138,7 +140,8 @@ public class SpectreConsoleDisplay : IConsoleDisplay
         {
             var stats = device.Stats;
             var rate = stats.CurrentRequestsPerMinute;
-            var peak = stats.PeakRequestsPerMinute;
+            var rollingPeak = stats.RollingPeakPerMinute;
+            var allTimePeak = stats.PeakRequestsPerMinute;
 
             var rateColor = rate > 60 ? "red" : rate > 30 ? "yellow" : "green";
             var errorColor = stats.ErrorCount > 0 ? "red" : "grey";
@@ -154,7 +157,9 @@ public class SpectreConsoleDisplay : IConsoleDisplay
                 new Markup($"{stats.CovNotificationsSentCount}"),
                 new Markup($"[{errorColor}]{stats.ErrorCount}[/]"),
                 new Markup($"{stats.UniqueClientCount}"),
-                new Markup($"[{rateColor}]{rate:F1}[/][grey]/{peak:F1}[/]")
+                new Markup($"[{rateColor}]{rate:F1}[/]"),
+                new Markup($"[yellow]{rollingPeak:F1}[/]"),
+                new Markup($"[grey]{allTimePeak:F1}[/]")
             );
         }
 
