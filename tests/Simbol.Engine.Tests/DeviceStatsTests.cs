@@ -108,19 +108,17 @@ public class DeviceStatsTests
     }
 
     [Fact]
-    public void ResetWindow_ReturnsRateAndResets()
+    public void ResetWindow_ReturnsSmoothedRateAndResets()
     {
         var stats = new DeviceStats();
         stats.RecordReadProperty("a");
         stats.RecordReadProperty("a");
         stats.RecordReadProperty("a");
 
-        // 3 requests in a 30 second window = 6 req/min
+        // 3 requests in 30s = instant rate 6 req/min, EMA: 0.4*6 + 0.6*0 = 2.4
         var rate = stats.ResetWindow(30);
-        Assert.Equal(6.0, rate, 0.01);
-
-        // CurrentRequestsPerMinute is updated
-        Assert.Equal(6.0, stats.CurrentRequestsPerMinute, 0.01);
+        Assert.Equal(2.4, rate, 0.1);
+        Assert.Equal(2.4, stats.CurrentRequestsPerMinute, 0.1);
 
         // Window counter is now reset
         Assert.Equal(0, stats.RequestsInWindow);
@@ -128,9 +126,12 @@ public class DeviceStatsTests
         // Total is still 3
         Assert.Equal(3, stats.TotalRequestCount);
 
-        // Calling ResetWindow again without new requests gives 0 rate
+        // Calling ResetWindow again without new requests — rate decays toward 0
         var rate2 = stats.ResetWindow(30);
-        Assert.Equal(0.0, rate2, 0.01);
+        Assert.True(rate2 < rate, "Rate should decay when no requests");
+
+        // After enough empty windows, rate reaches 0
+        for (int i = 0; i < 10; i++) stats.ResetWindow(30);
         Assert.Equal(0.0, stats.CurrentRequestsPerMinute, 0.01);
     }
 

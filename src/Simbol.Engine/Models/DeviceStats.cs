@@ -82,20 +82,27 @@ public class DeviceStats
     }
 
     /// <summary>
-    /// Computes requests/minute from the current window, updates peak and current rate, and resets the window counter.
+    /// Computes requests/minute from the current window using an exponential moving average
+    /// so the rate decays smoothly instead of snapping to 0 between bursts.
     /// Should only be called once per stats interval (not on every display refresh).
     /// </summary>
     public double ResetWindow(double windowSeconds)
     {
         var count = Interlocked.Exchange(ref _requestsInWindow, 0);
-        var rate = windowSeconds > 0 ? count / windowSeconds * 60.0 : 0;
+        var instantRate = windowSeconds > 0 ? count / windowSeconds * 60.0 : 0;
 
-        CurrentRequestsPerMinute = rate;
+        // EMA smoothing: blend new rate with previous (alpha=0.4 gives ~3-window decay)
+        const double alpha = 0.4;
+        CurrentRequestsPerMinute = alpha * instantRate + (1.0 - alpha) * CurrentRequestsPerMinute;
 
-        if (rate > _peakRequestsPerMinute)
-            _peakRequestsPerMinute = rate;
+        // Round very small values to 0 to avoid showing 0.1 forever
+        if (CurrentRequestsPerMinute < 0.5)
+            CurrentRequestsPerMinute = 0;
 
-        return rate;
+        if (instantRate > _peakRequestsPerMinute)
+            _peakRequestsPerMinute = instantRate;
+
+        return CurrentRequestsPerMinute;
     }
 
     private void TrackClient(string clientAddress)
