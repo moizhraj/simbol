@@ -137,7 +137,7 @@ public class SpectreConsoleDisplay : IConsoleDisplay
         foreach (var device in devices.Values)
         {
             var stats = device.Stats;
-            var rate = stats.ResetWindow(statsInterval);
+            var rate = stats.CurrentRequestsPerMinute;
             var peak = stats.PeakRequestsPerMinute;
 
             var rateColor = rate > 60 ? "red" : rate > 30 ? "yellow" : "green";

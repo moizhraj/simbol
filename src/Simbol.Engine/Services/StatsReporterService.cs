@@ -35,6 +35,13 @@ public class StatsReporterService : BackgroundService
             try
             {
                 var uptime = DateTime.UtcNow - _startTime;
+
+                // Compute rates for all devices (resets window counters)
+                foreach (var device in _serviceHandler.Devices.Values)
+                {
+                    device.Stats.ResetWindow(_config.Defaults.StatsIntervalSeconds);
+                }
+
                 _display.UpdateDashboard(
                     _serviceHandler.Devices,
                     uptime,

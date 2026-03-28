@@ -119,11 +119,19 @@ public class DeviceStatsTests
         var rate = stats.ResetWindow(30);
         Assert.Equal(6.0, rate, 0.01);
 
+        // CurrentRequestsPerMinute is updated
+        Assert.Equal(6.0, stats.CurrentRequestsPerMinute, 0.01);
+
         // Window counter is now reset
         Assert.Equal(0, stats.RequestsInWindow);
 
         // Total is still 3
         Assert.Equal(3, stats.TotalRequestCount);
+
+        // Calling ResetWindow again without new requests gives 0 rate
+        var rate2 = stats.ResetWindow(30);
+        Assert.Equal(0.0, rate2, 0.01);
+        Assert.Equal(0.0, stats.CurrentRequestsPerMinute, 0.01);
     }
 
     [Fact]

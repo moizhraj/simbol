@@ -28,6 +28,7 @@ public class DeviceStats
     public long ErrorCount => Interlocked.Read(ref _errorCount);
     public long RequestsInWindow => Interlocked.Read(ref _requestsInWindow);
     public double PeakRequestsPerMinute => _peakRequestsPerMinute;
+    public double CurrentRequestsPerMinute { get; private set; }
     public DateTime LastRequestTime { get; private set; }
     public int UniqueClientCount => _uniqueClients.Count;
 
@@ -81,13 +82,15 @@ public class DeviceStats
     }
 
     /// <summary>
-    /// Computes requests/minute from the current window, updates peak, and resets the window counter.
-    /// Returns the computed rate.
+    /// Computes requests/minute from the current window, updates peak and current rate, and resets the window counter.
+    /// Should only be called once per stats interval (not on every display refresh).
     /// </summary>
     public double ResetWindow(double windowSeconds)
     {
         var count = Interlocked.Exchange(ref _requestsInWindow, 0);
         var rate = windowSeconds > 0 ? count / windowSeconds * 60.0 : 0;
+
+        CurrentRequestsPerMinute = rate;
 
         if (rate > _peakRequestsPerMinute)
             _peakRequestsPerMinute = rate;
