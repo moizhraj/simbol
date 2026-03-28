@@ -67,7 +67,7 @@ public class SpectreConsoleDisplay : IConsoleDisplay
         rows.Add(new Text(""));
 
         rows.Add(BuildStatsTable());
-        rows.Add(new Markup("[grey]  RP=ReadProperty  RPM=ReadPropMultiple  WP=WriteProperty  COVSb=SubscribeCOV (incl. resubscriptions)  COVNot=COV Notifications  Req/min=current/peak[/]"));
+        rows.Add(new Markup("[grey]  RP=ReadProperty  RPM=ReadPropMultiple  WP=WriteProperty  COVSb=SubscribeCOV (incl. resubscriptions)  COVNot=COV Notifications[/]"));
         rows.Add(new Text(""));
 
         rows.Add(BuildActivityPanel());
@@ -126,7 +126,7 @@ public class SpectreConsoleDisplay : IConsoleDisplay
         table.AddColumn(new TableColumn("[bold]COVNot[/]").RightAligned());
         table.AddColumn(new TableColumn("[bold]Errors[/]").RightAligned());
         table.AddColumn(new TableColumn("[bold]Clients[/]").RightAligned());
-        table.AddColumn(new TableColumn("[bold]Req/min[/]").RightAligned());
+        table.AddColumn(new TableColumn("[bold]Req (cur/peak)/min[/]").RightAligned());
 
         if (devices == null || devices.Count == 0)
         {
