@@ -8,6 +8,8 @@ A CLI-based BACnet/IP device simulator that spins up virtual BACnet devices from
 - **Multiple devices on one port** — run many BACnet device instances sharing a single UDP socket
 - **9 BACnet object types** — AI, AO, AV, BI, BO, BV, MSI, MSO, MSV
 - **Dynamic value patterns** — static, sine wave, ramp (triangle), random, sawtooth
+- **Realistic per-object variation** — each object gets a random phase offset so values differ across objects even with the same pattern
+- **Per-object update intervals** — configurable update rate per object group with automatic jitter spread for realistic timing
 - **BACnet services** — Who-Is / I-Am, ReadProperty, ReadPropertyMultiple, WriteProperty, SubscribeCOV
 - **Writable objects** — accept WriteProperty and pause simulation (override mode)
 - **COV support** — Change of Value subscription and notification
@@ -61,7 +63,8 @@ The config file has three top-level sections: `network`, `defaults`, and `device
   "defaults": {
     "vendorId": 999,                 // Default vendor identifier
     "vendorName": "Simbol Simulator",// Default vendor name
-    "simulationIntervalMs": 1000,    // Tick interval in milliseconds
+    "simulationIntervalMs": 1000,    // Engine tick interval in milliseconds
+    "updateIntervalMs": 5000,        // Default per-object update interval (ms)
     "valueRange": { "min": 0.0, "max": 100.0 },  // Default value range
     "simulationPattern": "sine"      // Default simulation pattern
   },
@@ -80,7 +83,8 @@ The config file has three top-level sections: `network`, `defaults`, and `device
           "simulationPattern": "sine",  // Optional — overrides default
           "valueRange": { "min": 60.0, "max": 80.0 },  // Optional — overrides default
           "defaultValue": 72.0,      // Optional — initial/static value
-          "numberOfStates": 4        // Required for multi-state types
+          "numberOfStates": 4,       // Required for multi-state types
+          "updateIntervalMs": 10000  // Optional — per-group update interval (ms)
         }
       }
     }
@@ -101,6 +105,7 @@ The config file has three top-level sections: `network`, `defaults`, and `device
     "vendorId": 999,
     "vendorName": "Simbol Simulator",
     "simulationIntervalMs": 1000,
+    "updateIntervalMs": 5000,
     "valueRange": { "min": 0.0, "max": 100.0 },
     "simulationPattern": "sine"
   },
@@ -110,7 +115,7 @@ The config file has three top-level sections: `network`, `defaults`, and `device
       "name": "SimDevice-1",
       "description": "Simulated HVAC Controller",
       "objects": {
-        "analog-input": { "count": 10, "simulationPattern": "sine", "valueRange": { "min": 60.0, "max": 80.0 } },
+        "analog-input": { "count": 10, "simulationPattern": "sine", "valueRange": { "min": 60.0, "max": 80.0 }, "updateIntervalMs": 10000 },
         "analog-output": { "count": 5, "simulationPattern": "static", "defaultValue": 72.0 },
         "analog-value": { "count": 5 },
         "binary-input": { "count": 8, "simulationPattern": "random" },
@@ -159,6 +164,20 @@ The config file has three top-level sections: `network`, `defaults`, and `device
 | `ramp` | Triangle wave (up then down) over a 60 s period | Gradual change testing |
 | `random` | Random value each tick within the configured range | Noise / disturbance testing |
 | `sawtooth` | Linear ramp then reset over a 60 s period | Accumulator simulation |
+
+### Per-Object Variation
+
+Each simulated object automatically receives a **random phase offset** so that objects sharing the same pattern produce different values at any given moment. For example, ten analog-input objects all configured with `sine` will each follow a sine curve but start at different points in the cycle — just like real sensors that were installed and powered on at different times.
+
+### Update Intervals
+
+Object values do not all change at the same time. Each object has its own **update interval** that controls how often its present value is recalculated:
+
+- **`defaults.updateIntervalMs`** — the baseline update interval for all objects (default: `5000` ms).
+- **`objects.<type>.updateIntervalMs`** — override the interval for a specific object group.
+- **Auto-jitter** — when no explicit interval is set, each individual object gets a ±50 % jitter applied to the baseline. This means a 5 000 ms default produces actual intervals spread between 2 500 ms and 7 500 ms, so objects update at staggered times rather than in lockstep.
+
+> **Tip:** For a realistic HVAC simulation, use `"updateIntervalMs": 10000` (10 s) for temperature sensors and `"updateIntervalMs": 30000` (30 s) for slower-changing values like humidity.
 
 ## Architecture
 
