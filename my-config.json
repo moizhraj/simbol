@@ -21,7 +21,7 @@
       "description": "Simulated HVAC Controller",
       "objects": {
         "analog-input": {
-          "count": 10,
+          "count": 700,
           "simulationPattern": "sine",
           "valueRange": {
             "min": 60,
@@ -30,38 +30,38 @@
           "numberOfStates": 3
         },
         "analog-output": {
-          "count": 5,
+          "count": 400,
           "simulationPattern": "static",
           "defaultValue": 72,
           "numberOfStates": 3
         },
         "analog-value": {
-          "count": 5,
+          "count": 300,
           "numberOfStates": 3
         },
         "binary-input": {
-          "count": 8,
+          "count": 400,
           "simulationPattern": "random",
           "numberOfStates": 3
         },
         "binary-output": {
-          "count": 4,
+          "count": 190,
           "numberOfStates": 3
         },
         "binary-value": {
-          "count": 4,
+          "count": 130,
           "numberOfStates": 3
         },
         "multi-state-input": {
-          "count": 3,
+          "count": 70,
           "numberOfStates": 4
         },
         "multi-state-output": {
-          "count": 2,
+          "count": 53,
           "numberOfStates": 3
         },
         "multi-state-value": {
-          "count": 2,
+          "count": 47,
           "numberOfStates": 5
         }
       }
@@ -72,11 +72,11 @@
       "description": "Simulated Lighting Controller",
       "objects": {
         "binary-output": {
-          "count": 20,
+          "count": 200,
           "numberOfStates": 3
         },
         "analog-value": {
-          "count": 10,
+          "count": 100,
           "numberOfStates": 3
         }
       }

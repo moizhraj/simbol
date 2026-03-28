@@ -47,15 +47,22 @@ public class SimulationEngine : BackgroundService
 
     private void TickAllDevices(double elapsedSeconds)
     {
+        var now = DateTime.UtcNow;
+
         foreach (var device in _serviceHandler.Devices.Values)
         {
             foreach (var simObj in device.SimulatedObjects)
             {
                 if (simObj.IsOverridden) continue;
 
+                // Check per-object update interval
+                var msSinceLastUpdate = (now - simObj.LastUpdateTime).TotalMilliseconds;
+                if (msSinceLastUpdate < simObj.UpdateIntervalMs) continue;
+
                 try
                 {
                     UpdateObjectValue(device, simObj, elapsedSeconds);
+                    simObj.LastUpdateTime = now;
                 }
                 catch (Exception ex)
                 {

@@ -119,4 +119,50 @@ public class ValueSimulatorTests
             Assert.InRange(state, 1u, numberOfStates);
         }
     }
+
+    [Fact]
+    public void SineWaveSimulator_DifferentPhaseOffsets_ProduceDifferentValues()
+    {
+        var sim1 = new SineWaveSimulator(0, 100, phaseOffset: 0.0);
+        var sim2 = new SineWaveSimulator(0, 100, phaseOffset: 15.0);
+
+        // At the same elapsed time, different offsets produce different values
+        var val1 = sim1.GetAnalogValue(10.0);
+        var val2 = sim2.GetAnalogValue(10.0);
+
+        Assert.NotEqual(val1, val2);
+    }
+
+    [Fact]
+    public void RampSimulator_DifferentPhaseOffsets_ProduceDifferentValues()
+    {
+        var sim1 = new RampSimulator(0, 100, phaseOffset: 0.0);
+        var sim2 = new RampSimulator(0, 100, phaseOffset: 20.0);
+
+        var val1 = sim1.GetAnalogValue(5.0);
+        var val2 = sim2.GetAnalogValue(5.0);
+
+        Assert.NotEqual(val1, val2);
+    }
+
+    [Fact]
+    public void SawtoothSimulator_DifferentPhaseOffsets_ProduceDifferentValues()
+    {
+        var sim1 = new SawtoothSimulator(0, 100, phaseOffset: 0.0);
+        var sim2 = new SawtoothSimulator(0, 100, phaseOffset: 25.0);
+
+        var val1 = sim1.GetAnalogValue(5.0);
+        var val2 = sim2.GetAnalogValue(5.0);
+
+        Assert.NotEqual(val1, val2);
+    }
+
+    [Fact]
+    public void ValueSimulatorFactory_PassesPhaseOffset()
+    {
+        var sim1 = ValueSimulatorFactory.Create(SimulationPattern.Sine, phaseOffset: 0.0);
+        var sim2 = ValueSimulatorFactory.Create(SimulationPattern.Sine, phaseOffset: 10.0);
+
+        Assert.NotEqual(sim1.GetAnalogValue(5.0), sim2.GetAnalogValue(5.0));
+    }
 }

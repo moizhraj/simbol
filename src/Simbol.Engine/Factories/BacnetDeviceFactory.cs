@@ -14,6 +14,7 @@ public static class BacnetDeviceFactory
     {
         var vendorId = deviceConfig.VendorId ?? defaults.VendorId;
         var vendorName = deviceConfig.VendorName ?? defaults.VendorName;
+        var rng = new Random();
 
         var storageObjects = new List<BacnetObject>();
         var simulatedObjects = new List<SimulatedObject>();
@@ -33,17 +34,26 @@ public static class BacnetDeviceFactory
             var (bacnetType, category, isWritable) = ObjectTypeMapper.Resolve(objectTypeName);
             var pattern = groupConfig.SimulationPattern ?? defaults.SimulationPattern;
             var range = groupConfig.ValueRange ?? defaults.ValueRange;
+            var baseIntervalMs = groupConfig.UpdateIntervalMs ?? defaults.UpdateIntervalMs;
 
             for (int i = 0; i < groupConfig.Count; i++)
             {
                 objectCounter++;
                 var instanceNumber = instanceOffset + objectCounter;
                 var objectName = $"{deviceConfig.Name}-{objectTypeName}-{i + 1}";
-                var simulator = ValueSimulatorFactory.Create(pattern, range, groupConfig.DefaultValue);
+
+                // Random phase offset (0 to period) for value variation between objects
+                var phaseOffset = rng.NextDouble() * 60.0;
+                var simulator = ValueSimulatorFactory.Create(pattern, range, groupConfig.DefaultValue, phaseOffset);
+
+                // Jittered update interval: ±50% of base interval
+                var jitterFactor = 0.5 + rng.NextDouble(); // 0.5 to 1.5
+                var jitteredIntervalMs = (int)(baseIntervalMs * jitterFactor);
 
                 var (storageObj, simObj) = BacnetObjectFactory.CreateObject(
                     bacnetType, instanceNumber, objectName,
-                    category, isWritable, simulator, groupConfig, defaults);
+                    category, isWritable, simulator, groupConfig, defaults,
+                    jitteredIntervalMs);
 
                 storageObjects.Add(storageObj);
                 simulatedObjects.Add(simObj);

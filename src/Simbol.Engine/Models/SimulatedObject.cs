@@ -11,8 +11,14 @@ public class SimulatedObject
     public bool IsOverridden { get; set; }
     public uint NumberOfStates { get; init; } = 3;
 
-    /// <summary>The category: analog, binary, or multistate.</summary>
+    /// The category: analog, binary, or multistate.
     public ObjectValueCategory ValueCategory { get; init; }
+
+    /// Per-object update interval in milliseconds (with jitter applied).
+    public int UpdateIntervalMs { get; init; } = 5000;
+
+    /// Tracks when this object was last updated.
+    public DateTime LastUpdateTime { get; set; } = DateTime.MinValue;
 }
 
 public enum ObjectValueCategory

@@ -19,7 +19,8 @@ public static class BacnetObjectFactory
         bool isWritable,
         IValueSimulator simulator,
         ObjectGroupConfig groupConfig,
-        DefaultsConfig defaults)
+        DefaultsConfig defaults,
+        int updateIntervalMs = 5000)
     {
         var properties = new List<BacnetProperty>();
 
@@ -153,7 +154,8 @@ public static class BacnetObjectFactory
             Simulator = simulator,
             IsWritable = isWritable,
             ValueCategory = category,
-            NumberOfStates = (uint)groupConfig.NumberOfStates
+            NumberOfStates = (uint)groupConfig.NumberOfStates,
+            UpdateIntervalMs = updateIntervalMs
         };
 
         return (storageObj, simObj);

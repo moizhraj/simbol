@@ -9,6 +9,7 @@ public class ObjectGroupConfig
     public ValueRangeConfig? ValueRange { get; set; }
     public double? DefaultValue { get; set; }
     public int NumberOfStates { get; set; } = 3;
+    public int? UpdateIntervalMs { get; set; }
 
     public void Validate(string objectType)
     {
@@ -17,6 +18,9 @@ public class ObjectGroupConfig
 
         if (NumberOfStates < 2)
             throw new InvalidOperationException($"Object group '{objectType}' numberOfStates must be >= 2.");
+
+        if (UpdateIntervalMs.HasValue && UpdateIntervalMs.Value < 100)
+            throw new InvalidOperationException($"Object group '{objectType}' updateIntervalMs must be >= 100.");
 
         ValueRange?.Validate();
     }

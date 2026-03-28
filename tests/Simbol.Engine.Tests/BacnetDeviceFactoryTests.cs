@@ -131,4 +131,58 @@ public class BacnetDeviceFactoryTests
             Assert.StartsWith("TestDevice-analog-input-", nameProp.Value[0]);
         }
     }
+
+    [Fact]
+    public void CreateDevice_ObjectsHaveJitteredUpdateIntervals()
+    {
+        var device = BacnetDeviceFactory.CreateDevice(CreateDeviceConfig(), CreateDefaults());
+
+        var intervals = device.SimulatedObjects.Select(o => o.UpdateIntervalMs).ToList();
+
+        // All intervals should be > 0
+        Assert.All(intervals, i => Assert.True(i > 0));
+
+        // With 5 objects and jitter, not all intervals should be identical
+        Assert.True(intervals.Distinct().Count() > 1,
+            "Expected jittered intervals to produce variation across objects");
+    }
+
+    [Fact]
+    public void CreateDevice_ObjectsHavePhaseOffsetVariation()
+    {
+        var config = new DeviceConfig
+        {
+            InstanceId = 2000, Name = "PhaseTest", Description = "Test",
+            Objects = new() { ["analog-input"] = new() { Count = 5 } }
+        };
+        var device = BacnetDeviceFactory.CreateDevice(config, CreateDefaults());
+
+        // Simulate at the same elapsed time — values should differ due to phase offsets
+        var values = device.SimulatedObjects
+            .Select(o => o.Simulator.GetAnalogValue(10.0))
+            .ToList();
+
+        Assert.True(values.Distinct().Count() > 1,
+            "Expected phase offsets to produce different values across objects");
+    }
+
+    [Fact]
+    public void CreateDevice_ExplicitUpdateInterval_AppliedWithJitter()
+    {
+        var config = new DeviceConfig
+        {
+            InstanceId = 3000, Name = "IntervalTest", Description = "Test",
+            Objects = new()
+            {
+                ["analog-input"] = new() { Count = 5, UpdateIntervalMs = 10000 }
+            }
+        };
+        var device = BacnetDeviceFactory.CreateDevice(config, CreateDefaults());
+
+        // All intervals should be in the jitter range: 10000 * 0.5 to 10000 * 1.5
+        foreach (var obj in device.SimulatedObjects)
+        {
+            Assert.InRange(obj.UpdateIntervalMs, 5000, 15000);
+        }
+    }
 }
