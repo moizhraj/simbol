@@ -77,7 +77,7 @@ The config file has three top-level sections: `network`, `defaults`, and `device
     "simulationIntervalMs": 1000,    // Engine tick interval in milliseconds
     "updateIntervalMs": 5000,        // Default per-object update interval (ms)
     "jitterPercent": 50,             // Jitter range (0-100) applied to update intervals
-    "statsIntervalSeconds": 5        // How often to log device load statistics
+    "statsIntervalSeconds": 5,       // How often to log device load statistics
     "valueRange": { "min": 0.0, "max": 100.0 },  // Default value range
     "simulationPattern": "sine"      // Default simulation pattern
   },
@@ -205,7 +205,7 @@ While the simulator runs, the dashboard updates device stats at the interval def
 | **RP** | ReadProperty requests |
 | **RPM** | ReadPropertyMultiple requests |
 | **WP** | WriteProperty requests |
-| **COVSb** | SubscribeCOV requests |
+| **COVSb** | SubscribeCOV requests (includes resubscriptions after expiry) |
 | **WhoIs** | Who-Is discovery hits |
 | **COVNot** | Outbound COV notifications sent |
 | **Errors** | Error responses sent |
