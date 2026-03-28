@@ -102,8 +102,8 @@ public class BacnetDeviceFactoryTests
             Objects = new() { ["analog-input"] = new() { Count = 3 } }
         };
 
-        var device1 = BacnetDeviceFactory.CreateDevice(config1, defaults);
-        var device2 = BacnetDeviceFactory.CreateDevice(config2, defaults);
+        var device1 = BacnetDeviceFactory.CreateDevice(config1, defaults, 0);
+        var device2 = BacnetDeviceFactory.CreateDevice(config2, defaults, device1.NextInstanceBase);
 
         var instances1 = device1.Storage.Objects
             .Where(o => o.Type == BacnetObjectTypes.OBJECT_ANALOG_INPUT)

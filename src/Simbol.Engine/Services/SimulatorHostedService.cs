@@ -27,11 +27,13 @@ public class SimulatorHostedService : IHostedService
     {
         _logger.LogInformation("=== Simbol BACnet Simulator ===");
 
-        // Create devices from config
+        // Create devices from config, chaining instance bases to avoid collisions
+        uint instanceBase = 0;
         foreach (var deviceConfig in _config.Devices)
         {
-            var device = BacnetDeviceFactory.CreateDevice(deviceConfig, _config.Defaults);
+            var device = BacnetDeviceFactory.CreateDevice(deviceConfig, _config.Defaults, instanceBase);
             _serviceHandler.RegisterDevice(device);
+            instanceBase = device.NextInstanceBase;
 
             var objectCount = device.SimulatedObjects.Count;
             _logger.LogInformation("Created device '{Name}' (ID: {DeviceId}) with {ObjectCount} simulated objects",

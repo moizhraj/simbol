@@ -12,6 +12,11 @@ public static class BacnetDeviceFactory
 {
     public static SimulatedDevice CreateDevice(DeviceConfig deviceConfig, DefaultsConfig defaults)
     {
+        return CreateDevice(deviceConfig, defaults, 0u);
+    }
+
+    public static SimulatedDevice CreateDevice(DeviceConfig deviceConfig, DefaultsConfig defaults, uint globalInstanceBase)
+    {
         var vendorId = deviceConfig.VendorId ?? defaults.VendorId;
         var vendorName = deviceConfig.VendorName ?? defaults.VendorName;
         var rng = new Random();
@@ -23,11 +28,9 @@ public static class BacnetDeviceFactory
         var deviceObj = CreateDeviceObject(deviceConfig, (uint)vendorId, vendorName, defaults);
         storageObjects.Add(deviceObj);
 
-        // Create objects from config
-        // Use device instance ID as base offset to ensure globally unique object instance numbers
-        // e.g., device 1000 → objects at 1000001+, device 1001 → objects at 1001001+
-        var instanceOffset = deviceConfig.InstanceId * 1000u;
-        uint objectCounter = 0;
+        // Use globalInstanceBase to ensure no instance number collisions across devices.
+        // Each device's objects start at globalInstanceBase + 1.
+        uint objectCounter = globalInstanceBase;
 
         foreach (var (objectTypeName, groupConfig) in deviceConfig.Objects)
         {
@@ -42,7 +45,7 @@ public static class BacnetDeviceFactory
             for (int i = 0; i < groupConfig.Count; i++)
             {
                 objectCounter++;
-                var instanceNumber = instanceOffset + objectCounter;
+                var instanceNumber = objectCounter;
                 var objectName = $"{deviceConfig.Name}-{objectTypeName}-{i + 1}";
 
                 // Random phase offset (0 to period) for value variation between objects
@@ -78,7 +81,8 @@ public static class BacnetDeviceFactory
             Name = deviceConfig.Name,
             Storage = storage,
             SimulatedObjects = simulatedObjects,
-            Config = deviceConfig
+            Config = deviceConfig,
+            NextInstanceBase = objectCounter
         };
     }
 

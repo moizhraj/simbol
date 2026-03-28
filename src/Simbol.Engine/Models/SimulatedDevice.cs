@@ -11,4 +11,10 @@ public class SimulatedDevice
     public List<SimulatedObject> SimulatedObjects { get; init; } = new();
     public DeviceConfig Config { get; init; } = null!;
     public DeviceStats Stats { get; } = new();
+
+    /// <summary>
+    /// The next available instance number base after this device's objects.
+    /// Used to chain device creation without instance collisions.
+    /// </summary>
+    public uint NextInstanceBase { get; init; }
 }
