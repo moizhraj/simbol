@@ -23,6 +23,11 @@ public static class BacnetDeviceFactory
         storageObjects.Add(deviceObj);
 
         // Create objects from config
+        // Use device instance ID as base offset to ensure globally unique object instance numbers
+        // e.g., device 1000 → objects at 1000001+, device 1001 → objects at 1001001+
+        var instanceOffset = deviceConfig.InstanceId * 1000u;
+        uint objectCounter = 0;
+
         foreach (var (objectTypeName, groupConfig) in deviceConfig.Objects)
         {
             var (bacnetType, category, isWritable) = ObjectTypeMapper.Resolve(objectTypeName);
@@ -31,8 +36,9 @@ public static class BacnetDeviceFactory
 
             for (int i = 0; i < groupConfig.Count; i++)
             {
-                var instanceNumber = (uint)(i + 1);
-                var objectName = $"{deviceConfig.Name}-{objectTypeName}-{instanceNumber}";
+                objectCounter++;
+                var instanceNumber = instanceOffset + objectCounter;
+                var objectName = $"{deviceConfig.Name}-{objectTypeName}-{i + 1}";
                 var simulator = ValueSimulatorFactory.Create(pattern, range, groupConfig.DefaultValue);
 
                 var (storageObj, simObj) = BacnetObjectFactory.CreateObject(

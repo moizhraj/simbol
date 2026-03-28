@@ -85,4 +85,50 @@ public class BacnetDeviceFactoryTests
             .First(p => p.Id == BacnetPropertyIds.PROP_VENDOR_IDENTIFIER);
         Assert.Equal("999", vendorId.Value[0]);
     }
+
+    [Fact]
+    public void CreateDevice_ObjectInstancesAreGloballyUnique()
+    {
+        var defaults = CreateDefaults();
+
+        var config1 = new DeviceConfig
+        {
+            InstanceId = 1000, Name = "Device-A", Description = "A",
+            Objects = new() { ["analog-input"] = new() { Count = 3 } }
+        };
+        var config2 = new DeviceConfig
+        {
+            InstanceId = 1001, Name = "Device-B", Description = "B",
+            Objects = new() { ["analog-input"] = new() { Count = 3 } }
+        };
+
+        var device1 = BacnetDeviceFactory.CreateDevice(config1, defaults);
+        var device2 = BacnetDeviceFactory.CreateDevice(config2, defaults);
+
+        var instances1 = device1.Storage.Objects
+            .Where(o => o.Type == BacnetObjectTypes.OBJECT_ANALOG_INPUT)
+            .Select(o => o.Instance).ToHashSet();
+        var instances2 = device2.Storage.Objects
+            .Where(o => o.Type == BacnetObjectTypes.OBJECT_ANALOG_INPUT)
+            .Select(o => o.Instance).ToHashSet();
+
+        // No overlap between device instance numbers
+        Assert.Empty(instances1.Intersect(instances2));
+    }
+
+    [Fact]
+    public void CreateDevice_ObjectNamesUseDeviceName()
+    {
+        var device = BacnetDeviceFactory.CreateDevice(CreateDeviceConfig(), CreateDefaults());
+
+        var aiObjects = device.Storage.Objects
+            .Where(o => o.Type == BacnetObjectTypes.OBJECT_ANALOG_INPUT)
+            .ToList();
+
+        foreach (var obj in aiObjects)
+        {
+            var nameProp = obj.Properties.First(p => p.Id == BacnetPropertyIds.PROP_OBJECT_NAME);
+            Assert.StartsWith("TestDevice-analog-input-", nameProp.Value[0]);
+        }
+    }
 }
