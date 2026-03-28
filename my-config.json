@@ -8,6 +8,8 @@
     "vendorId": 999,
     "vendorName": "Simbol Simulator",
     "simulationIntervalMs": 1000,
+    "updateIntervalMs": 5000,
+    "jitterPercent": 50,
     "valueRange": {
       "min": 0,
       "max": 100
@@ -27,7 +29,8 @@
             "min": 60,
             "max": 80
           },
-          "numberOfStates": 3
+          "numberOfStates": 3,
+          "updateIntervalMs": 10000
         },
         "analog-output": {
           "count": 400,
@@ -37,12 +40,14 @@
         },
         "analog-value": {
           "count": 300,
-          "numberOfStates": 3
+          "numberOfStates": 3,
+          "updateIntervalMs": 15000
         },
         "binary-input": {
           "count": 400,
           "simulationPattern": "random",
-          "numberOfStates": 3
+          "numberOfStates": 3,
+          "updateIntervalMs": 8000
         },
         "binary-output": {
           "count": 190,
@@ -53,8 +58,9 @@
           "numberOfStates": 3
         },
         "multi-state-input": {
-          "count": 70,
-          "numberOfStates": 4
+          "count": 72,
+          "numberOfStates": 4,
+          "updateIntervalMs": 12000
         },
         "multi-state-output": {
           "count": 53,
@@ -73,11 +79,13 @@
       "objects": {
         "binary-output": {
           "count": 200,
-          "numberOfStates": 3
+          "numberOfStates": 3,
+          "updateIntervalMs": 6000
         },
         "analog-value": {
           "count": 100,
-          "numberOfStates": 3
+          "numberOfStates": 3,
+          "updateIntervalMs": 20000
         }
       }
     }
