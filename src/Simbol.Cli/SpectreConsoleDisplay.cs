@@ -1,5 +1,6 @@
 namespace Simbol.Cli;
 
+using System.Text;
 using Spectre.Console;
 using Spectre.Console.Rendering;
 using Simbol.Engine.Models;
@@ -68,6 +69,7 @@ public class SpectreConsoleDisplay : IConsoleDisplay
 
         rows.Add(BuildStatsTable());
         rows.Add(new Markup("[grey]  RP=ReadProperty  RPM=ReadPropMultiple  WP=WriteProperty  COVSb=SubscribeCOV (incl. resubscriptions)  COVNot=COV Notifications  1m Peak=last 60s  All Peak=all-time[/]"));
+        rows.Add(BuildSparklinePanel());
         rows.Add(new Text(""));
 
         rows.Add(BuildActivityPanel());
@@ -164,6 +166,89 @@ public class SpectreConsoleDisplay : IConsoleDisplay
         }
 
         return table;
+    }
+
+    private IRenderable BuildSparklinePanel()
+    {
+        IReadOnlyDictionary<uint, SimulatedDevice>? devices;
+        lock (_lock) { devices = _devices; }
+
+        if (devices == null || devices.Count == 0)
+            return new Text("");
+
+        var sparklines = new List<IRenderable>();
+
+        var windows = new (string Label, TimeSpan Window)[]
+        {
+            ("Last 5 min", TimeSpan.FromMinutes(5)),
+            ("Last 1 hour", TimeSpan.FromHours(1)),
+            ("All time", TimeSpan.FromHours(24))
+        };
+
+        foreach (var (label, window) in windows)
+        {
+            var hasData = false;
+            var deviceLines = new List<IRenderable>();
+
+            foreach (var device in devices.Values)
+            {
+                var points = window == TimeSpan.FromHours(24)
+                    ? device.Stats.RateHistory.GetAllPoints()
+                    : device.Stats.RateHistory.GetPoints(window);
+
+                if (points.Length < 2) continue;
+                hasData = true;
+
+                var rates = points.Select(p => p.Rate).ToArray();
+                var maxRate = rates.Max();
+                var peakInWindow = maxRate;
+                var sparkline = BuildSparkline(rates, maxRate);
+
+                var name = device.Name.Length > 14 ? device.Name[..14] : device.Name;
+                deviceLines.Add(new Markup($"  [bold]{Markup.Escape(name)}[/] {sparkline} [grey]peak: {peakInWindow:F1}[/]"));
+            }
+
+            if (hasData)
+            {
+                sparklines.Add(new Markup($"  [underline]{label}[/]"));
+                sparklines.AddRange(deviceLines);
+            }
+        }
+
+        if (sparklines.Count == 0)
+            return new Panel(new Markup("[grey italic]Collecting rate data...[/]"))
+                .Header("[bold] Rate History [/]")
+                .Border(BoxBorder.Rounded)
+                .BorderColor(Color.Grey)
+                .Expand();
+
+        return new Panel(new Rows(sparklines))
+            .Header("[bold] Rate History [/]")
+            .Border(BoxBorder.Rounded)
+            .BorderColor(Color.Grey)
+            .Expand();
+    }
+
+    private static string BuildSparkline(double[] values, double maxValue)
+    {
+        char[] blocks = { ' ', '▁', '▂', '▃', '▄', '▅', '▆', '▇', '█' };
+
+        // Limit to last 60 data points to fit terminal width
+        if (values.Length > 60)
+            values = values[^60..];
+
+        var sb = new StringBuilder();
+        foreach (var val in values)
+        {
+            int level = maxValue > 0
+                ? (int)Math.Clamp(Math.Round(val / maxValue * 8), 0, 8)
+                : 0;
+
+            var color = val > 60 ? "red" : val > 30 ? "yellow" : "green";
+            sb.Append($"[{color}]{blocks[level]}[/]");
+        }
+
+        return sb.ToString();
     }
 
     private IRenderable BuildActivityPanel()

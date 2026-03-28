@@ -23,6 +23,8 @@ public class DeviceStats
 
     private readonly ConcurrentDictionary<string, byte> _uniqueClients = new();
 
+    public RateHistoryBuffer RateHistory { get; } = new();
+
     public long ReadPropertyCount => Interlocked.Read(ref _readPropertyCount);
     public long ReadPropertyMultipleCount => Interlocked.Read(ref _readPropertyMultipleCount);
     public long WritePropertyCount => Interlocked.Read(ref _writePropertyCount);
@@ -104,6 +106,9 @@ public class DeviceStats
         // Round very small values to 0 to avoid showing 0.1 forever
         if (CurrentRequestsPerMinute < 0.5)
             CurrentRequestsPerMinute = 0;
+
+        // Record instant rate for history graph
+        RateHistory.Add(instantRate);
 
         // All-time peak
         if (instantRate > _peakRequestsPerMinute)
