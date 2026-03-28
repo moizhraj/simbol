@@ -47,6 +47,8 @@ public static class ConfigLoader
                 VendorId = 999,
                 VendorName = "Simbol Simulator",
                 SimulationIntervalMs = 1000,
+                UpdateIntervalMs = 5000,
+                JitterPercent = 50,
                 ValueRange = new ValueRangeConfig { Min = 0.0, Max = 100.0 },
                 SimulationPattern = Enums.SimulationPattern.Sine
             },
@@ -59,13 +61,13 @@ public static class ConfigLoader
                     Description = "Simulated HVAC Controller",
                     Objects = new Dictionary<string, ObjectGroupConfig>
                     {
-                        ["analog-input"] = new() { Count = 10, SimulationPattern = Enums.SimulationPattern.Sine, ValueRange = new() { Min = 60.0, Max = 80.0 } },
+                        ["analog-input"] = new() { Count = 10, SimulationPattern = Enums.SimulationPattern.Sine, ValueRange = new() { Min = 60.0, Max = 80.0 }, UpdateIntervalMs = 10000 },
                         ["analog-output"] = new() { Count = 5, SimulationPattern = Enums.SimulationPattern.Static, DefaultValue = 72.0 },
-                        ["analog-value"] = new() { Count = 5 },
-                        ["binary-input"] = new() { Count = 8, SimulationPattern = Enums.SimulationPattern.Random },
+                        ["analog-value"] = new() { Count = 5, UpdateIntervalMs = 15000 },
+                        ["binary-input"] = new() { Count = 8, SimulationPattern = Enums.SimulationPattern.Random, UpdateIntervalMs = 8000 },
                         ["binary-output"] = new() { Count = 4 },
                         ["binary-value"] = new() { Count = 4 },
-                        ["multi-state-input"] = new() { Count = 3, NumberOfStates = 4 },
+                        ["multi-state-input"] = new() { Count = 3, NumberOfStates = 4, UpdateIntervalMs = 12000 },
                         ["multi-state-output"] = new() { Count = 2, NumberOfStates = 3 },
                         ["multi-state-value"] = new() { Count = 2, NumberOfStates = 5 }
                     }
@@ -77,8 +79,8 @@ public static class ConfigLoader
                     Description = "Simulated Lighting Controller",
                     Objects = new Dictionary<string, ObjectGroupConfig>
                     {
-                        ["binary-output"] = new() { Count = 20 },
-                        ["analog-value"] = new() { Count = 10 }
+                        ["binary-output"] = new() { Count = 20, UpdateIntervalMs = 6000 },
+                        ["analog-value"] = new() { Count = 10, UpdateIntervalMs = 20000 }
                     }
                 }
             }
