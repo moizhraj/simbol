@@ -55,11 +55,13 @@ public class BacnetServiceHandler
 
     private void HandleWhoIs(BacnetClient sender, BacnetAddress adr, int lowLimit, int highLimit)
     {
+        var clientAddr = adr.ToString();
         foreach (var device in _devices.Values)
         {
             if ((lowLimit == -1 && highLimit == -1) ||
                 (device.DeviceId >= (uint)lowLimit && device.DeviceId <= (uint)highLimit))
             {
+                device.Stats.RecordWhoIs(clientAddr);
                 sender.Iam(device.DeviceId, BacnetSegmentations.SEGMENTATION_BOTH);
                 _logger.LogDebug("I-Am sent for device {DeviceId} ({Name})", device.DeviceId, device.Name);
             }
@@ -69,6 +71,7 @@ public class BacnetServiceHandler
     private void HandleReadProperty(BacnetClient sender, BacnetAddress adr, byte invokeId,
         BacnetObjectId objectId, BacnetPropertyReference property, BacnetMaxSegments maxSegments)
     {
+        var clientAddr = adr.ToString();
         foreach (var device in _devices.Values)
         {
             var status = device.Storage.ReadProperty(objectId, (BacnetPropertyIds)property.propertyIdentifier,
@@ -76,6 +79,7 @@ public class BacnetServiceHandler
 
             if (status == DeviceStorage.ErrorCodes.Good)
             {
+                device.Stats.RecordReadProperty(clientAddr);
                 sender.ReadPropertyResponse(adr, invokeId, sender.GetSegmentBuffer(maxSegments),
                     objectId, property, value);
                 return;
@@ -83,6 +87,8 @@ public class BacnetServiceHandler
 
             if (status != DeviceStorage.ErrorCodes.UnknownObject)
             {
+                device.Stats.RecordReadProperty(clientAddr);
+                device.Stats.RecordError();
                 sender.ErrorResponse(adr, BacnetConfirmedServices.SERVICE_CONFIRMED_READ_PROPERTY, invokeId,
                     BacnetErrorClasses.ERROR_CLASS_PROPERTY,
                     status == DeviceStorage.ErrorCodes.UnknownProperty
@@ -115,6 +121,8 @@ public class BacnetServiceHandler
                 BacnetErrorClasses.ERROR_CLASS_OBJECT, BacnetErrorCodes.ERROR_CODE_UNKNOWN_OBJECT);
             return;
         }
+
+        targetDevice.Stats.RecordReadPropertyMultiple(adr.ToString());
 
         var values = new List<BacnetReadAccessResult>();
         foreach (var spec in properties)
@@ -165,14 +173,18 @@ public class BacnetServiceHandler
     private void HandleWriteProperty(BacnetClient sender, BacnetAddress adr, byte invokeId,
         BacnetObjectId objectId, BacnetPropertyValue value, BacnetMaxSegments maxSegments)
     {
+        var clientAddr = adr.ToString();
         foreach (var device in _devices.Values)
         {
             var obj = device.Storage.FindObject(objectId);
             if (obj == null) continue;
 
+            device.Stats.RecordWriteProperty(clientAddr);
+
             var simObj = device.SimulatedObjects.FirstOrDefault(o => o.ObjectId.Equals(objectId));
             if (simObj != null && !simObj.IsWritable)
             {
+                device.Stats.RecordError();
                 sender.ErrorResponse(adr, BacnetConfirmedServices.SERVICE_CONFIRMED_WRITE_PROPERTY, invokeId,
                     BacnetErrorClasses.ERROR_CLASS_PROPERTY, BacnetErrorCodes.ERROR_CODE_WRITE_ACCESS_DENIED);
                 return;
@@ -216,6 +228,8 @@ public class BacnetServiceHandler
         {
             if (device.Storage.FindObject(monitoredObjectIdentifier) == null) continue;
 
+            device.Stats.RecordSubscribeCov(adr.ToString());
+
             if (cancellationRequest)
             {
                 _covManager.Unsubscribe(adr, subscriberProcessIdentifier, monitoredObjectIdentifier, device.DeviceId);
@@ -255,6 +269,9 @@ public class BacnetServiceHandler
 
                 _client.Notify(sub.Subscriber, sub.ProcessIdentifier, deviceId,
                     objectId, timeRemaining, sub.IssueConfirmedNotifications, values);
+
+                if (_devices.TryGetValue(deviceId, out var notifiedDevice))
+                    notifiedDevice.Stats.RecordCovNotificationSent();
 
                 _logger.LogDebug("COV notification sent to {Subscriber} for device {DeviceId}, object {ObjectId}",
                     sub.Subscriber, deviceId, objectId);

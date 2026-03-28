@@ -13,6 +13,7 @@ A CLI-based BACnet/IP device simulator that spins up virtual BACnet devices from
 - **BACnet services** — Who-Is / I-Am, ReadProperty, ReadPropertyMultiple, WriteProperty, SubscribeCOV
 - **Writable objects** — accept WriteProperty and pause simulation (override mode)
 - **COV support** — Change of Value subscription and notification
+- **Live load statistics** — per-device request counts, rates, unique clients, and peak tracking logged periodically
 - **Graceful shutdown** — clean exit on Ctrl+C
 
 ## Prerequisites
@@ -66,6 +67,7 @@ The config file has three top-level sections: `network`, `defaults`, and `device
     "simulationIntervalMs": 1000,    // Engine tick interval in milliseconds
     "updateIntervalMs": 5000,        // Default per-object update interval (ms)
     "jitterPercent": 50,             // Jitter range (0-100) applied to update intervals
+    "statsIntervalSeconds": 30       // How often to log device load statistics
     "valueRange": { "min": 0.0, "max": 100.0 },  // Default value range
     "simulationPattern": "sine"      // Default simulation pattern
   },
@@ -108,6 +110,7 @@ The config file has three top-level sections: `network`, `defaults`, and `device
     "simulationIntervalMs": 1000,
     "updateIntervalMs": 5000,
     "jitterPercent": 50,
+    "statsIntervalSeconds": 30,
     "valueRange": { "min": 0.0, "max": 100.0 },
     "simulationPattern": "sine"
   },
@@ -181,6 +184,25 @@ Object values do not all change at the same time. Each object has its own **upda
 - **Auto-jitter** — every individual object gets the configured jitter applied to its baseline interval. A `jitterPercent` of `50` with a 5 000 ms interval produces per-object intervals between 2 500 ms and 7 500 ms, so objects never update in lockstep.
 
 > **Tip:** For a realistic HVAC simulation, use `"updateIntervalMs": 10000` (10 s) for temperature sensors and `"updateIntervalMs": 30000` (30 s) for slower-changing values like humidity.
+
+## Load Statistics
+
+While the simulator runs, a stats table is logged to the console at the interval defined by `defaults.statsIntervalSeconds` (default: 30 s). The table shows **per-device** metrics:
+
+| Column | Meaning |
+|--------|---------|
+| **Total** | Total inbound requests (lifetime) |
+| **RP** | ReadProperty requests |
+| **RPM** | ReadPropertyMultiple requests |
+| **WP** | WriteProperty requests |
+| **COVSb** | SubscribeCOV requests |
+| **WhoIs** | Who-Is discovery hits |
+| **COVNot** | Outbound COV notifications sent |
+| **Errors** | Error responses sent |
+| **Clients** | Unique client addresses seen |
+| **Req/min** | Current rate / peak rate |
+
+Use this to identify over-polling clients or uneven load distribution across devices.
 
 ## Architecture
 

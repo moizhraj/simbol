@@ -55,6 +55,7 @@ runCommand.SetAction(async (parseResult, cancellationToken) =>
                 services.AddSingleton<BacnetServiceHandler>();
                 services.AddHostedService<SimulatorHostedService>();
                 services.AddHostedService<SimulationEngine>();
+                services.AddHostedService<StatsReporterService>();
             })
             .Build();
 

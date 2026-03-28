@@ -10,4 +10,5 @@ public class SimulatedDevice
     public DeviceStorage Storage { get; init; } = null!;
     public List<SimulatedObject> SimulatedObjects { get; init; } = new();
     public DeviceConfig Config { get; init; } = null!;
+    public DeviceStats Stats { get; } = new();
 }
