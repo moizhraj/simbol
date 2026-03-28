@@ -4,7 +4,7 @@ using Simbol.Engine.Models;
 
 public interface IConsoleDisplay
 {
-    void UpdateDashboard(IReadOnlyDictionary<uint, SimulatedDevice> devices, TimeSpan uptime, int statsIntervalSeconds);
+    void Initialize(IReadOnlyDictionary<uint, SimulatedDevice> devices);
     void AddActivity(string message);
     void SetLogFilePath(string path);
     void SetConfigPath(string path);

@@ -10,16 +10,19 @@ public class SimulatorHostedService : IHostedService
 {
     private readonly SimbolConfig _config;
     private readonly BacnetServiceHandler _serviceHandler;
+    private readonly IConsoleDisplay _display;
     private readonly ILogger<SimulatorHostedService> _logger;
     private BacnetClient? _client;
 
     public SimulatorHostedService(
         SimbolConfig config,
         BacnetServiceHandler serviceHandler,
+        IConsoleDisplay display,
         ILogger<SimulatorHostedService> logger)
     {
         _config = config;
         _serviceHandler = serviceHandler;
+        _display = display;
         _logger = logger;
     }
 
@@ -39,6 +42,9 @@ public class SimulatorHostedService : IHostedService
             _logger.LogInformation("Created device '{Name}' (ID: {DeviceId}) with {ObjectCount} simulated objects",
                 device.Name, device.DeviceId, objectCount);
         }
+
+        // Initialize the display with device references
+        _display.Initialize(_serviceHandler.Devices);
 
         // Create and start BACnet transport
         var transport = new BacnetIpUdpProtocolTransport(_config.Network.Port, false, false, 1472, _config.Network.Interface);

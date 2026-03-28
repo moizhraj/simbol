@@ -11,18 +11,11 @@ public class SpectreConsoleDisplay : IConsoleDisplay
     private string _logFilePath = "";
     private string _configPath = "";
     private IReadOnlyDictionary<uint, SimulatedDevice>? _devices;
-    private TimeSpan _uptime;
-    private int _statsIntervalSeconds = 30;
-    private readonly object _lock = new();
+    private readonly DateTime _startTime = DateTime.UtcNow;
 
-    public void UpdateDashboard(IReadOnlyDictionary<uint, SimulatedDevice> devices, TimeSpan uptime, int statsIntervalSeconds)
+    public void Initialize(IReadOnlyDictionary<uint, SimulatedDevice> devices)
     {
-        lock (_lock)
-        {
-            _devices = devices;
-            _uptime = uptime;
-            _statsIntervalSeconds = statsIntervalSeconds;
-        }
+        _devices = devices;
     }
 
     public void AddActivity(string message)
@@ -45,6 +38,13 @@ public class SpectreConsoleDisplay : IConsoleDisplay
             {
                 while (!cancellationToken.IsCancellationRequested)
                 {
+                    // Compute rates every 1 second (window = 1s)
+                    if (_devices != null)
+                    {
+                        foreach (var device in _devices.Values)
+                            device.Stats.ResetWindow(1);
+                    }
+
                     ctx.UpdateTarget(BuildDisplay());
                     ctx.Refresh();
                     try
@@ -80,8 +80,7 @@ public class SpectreConsoleDisplay : IConsoleDisplay
 
     private IRenderable BuildHeader()
     {
-        TimeSpan uptime;
-        lock (_lock) { uptime = _uptime; }
+        var uptime = DateTime.UtcNow - _startTime;
 
         var grid = new Grid();
         grid.AddColumn();
@@ -102,13 +101,7 @@ public class SpectreConsoleDisplay : IConsoleDisplay
 
     private IRenderable BuildStatsTable()
     {
-        IReadOnlyDictionary<uint, SimulatedDevice>? devices;
-        int statsInterval;
-        lock (_lock)
-        {
-            devices = _devices;
-            statsInterval = _statsIntervalSeconds;
-        }
+        var devices = _devices;
 
         var table = new Table()
             .Title("[bold] Device Load [/]")
