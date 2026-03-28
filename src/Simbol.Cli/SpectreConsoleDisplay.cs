@@ -67,6 +67,7 @@ public class SpectreConsoleDisplay : IConsoleDisplay
         rows.Add(new Text(""));
 
         rows.Add(BuildStatsTable());
+        rows.Add(new Markup("[grey]  RP=ReadProperty  RPM=ReadPropMultiple  WP=WriteProperty  COVSb=SubscribeCOV (incl. resubscriptions)  COVNot=COV Notifications  Req/min=current/peak[/]"));
         rows.Add(new Text(""));
 
         rows.Add(BuildActivityPanel());

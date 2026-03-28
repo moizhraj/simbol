@@ -9,7 +9,7 @@ public class DefaultsConfig
     public int SimulationIntervalMs { get; set; } = 1000;
     public int UpdateIntervalMs { get; set; } = 5000;
     public double JitterPercent { get; set; } = 50.0;
-    public int StatsIntervalSeconds { get; set; } = 30;
+    public int StatsIntervalSeconds { get; set; } = 5;
     public ValueRangeConfig ValueRange { get; set; } = new();
     public SimulationPattern SimulationPattern { get; set; } = SimulationPattern.Sine;
 

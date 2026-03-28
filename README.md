@@ -77,7 +77,7 @@ The config file has three top-level sections: `network`, `defaults`, and `device
     "simulationIntervalMs": 1000,    // Engine tick interval in milliseconds
     "updateIntervalMs": 5000,        // Default per-object update interval (ms)
     "jitterPercent": 50,             // Jitter range (0-100) applied to update intervals
-    "statsIntervalSeconds": 30       // How often to log device load statistics
+    "statsIntervalSeconds": 5        // How often to log device load statistics
     "valueRange": { "min": 0.0, "max": 100.0 },  // Default value range
     "simulationPattern": "sine"      // Default simulation pattern
   },
@@ -120,7 +120,7 @@ The config file has three top-level sections: `network`, `defaults`, and `device
     "simulationIntervalMs": 1000,
     "updateIntervalMs": 5000,
     "jitterPercent": 50,
-    "statsIntervalSeconds": 30,
+    "statsIntervalSeconds": 5,
     "valueRange": { "min": 0.0, "max": 100.0 },
     "simulationPattern": "sine"
   },
@@ -197,7 +197,7 @@ Object values do not all change at the same time. Each object has its own **upda
 
 ## Load Statistics
 
-While the simulator runs, a stats table is logged to the console at the interval defined by `defaults.statsIntervalSeconds` (default: 30 s). The table shows **per-device** metrics:
+While the simulator runs, the dashboard updates device stats at the interval defined by `defaults.statsIntervalSeconds` (default: 5 s). The table shows **per-device** metrics:
 
 | Column | Meaning |
 |--------|---------|
