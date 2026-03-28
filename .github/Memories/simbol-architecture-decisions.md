@@ -38,5 +38,9 @@
   - `src/Simbol.Engine/Factories/BacnetDeviceFactory.cs` — creates SimulatedDevice from config
   - `src/Simbol.Engine/Services/BacnetServiceHandler.cs` — handles BACnet service requests
   - `src/Simbol.Engine/Services/SimulationEngine.cs` — ticks value simulators
+  - `src/Simbol.Engine/Services/IConsoleDisplay.cs` — display abstraction (Engine doesn't depend on Spectre)
+  - `src/Simbol.Engine/Services/NullConsoleDisplay.cs` — no-op display for tests
+  - `src/Simbol.Engine/Services/RecentActivityBuffer.cs` — thread-safe circular buffer
+  - `src/Simbol.Cli/SpectreConsoleDisplay.cs` — Spectre.Console Live dashboard implementation
   - `src/Simbol.Core/Configuration/` — all config POCOs
   - `config/sample-config.json` — example configuration

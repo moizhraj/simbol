@@ -47,6 +47,16 @@ dotnet run --project src/Simbol.Cli -- run --config my-config.json
 | `simbol validate --config <path>` | Validate config file without starting devices |
 | `simbol init [--output <path>]` | Generate a sample config (default: `simbol-config.json`) |
 
+### Live Dashboard
+
+When running `simbol run`, the console displays a **self-updating dashboard** (powered by Spectre.Console) instead of scrolling logs:
+
+- **Header** — config file path, uptime, log file location
+- **Device Load table** — per-device request stats refreshed every second
+- **Recent Activity** — last 8 significant events (Who-Is, RPM, writes, COV subscriptions)
+
+All detailed logs (debug, info, warning, error) are written to a **temp log file** at `%TEMP%\simbol-<timestamp>.log`. The path is displayed in the dashboard header and printed again on exit. Use `Get-Content -Wait` or `tail -f` to follow the log in a separate terminal.
+
 ## Configuration Reference
 
 The config file has three top-level sections: `network`, `defaults`, and `devices`.
