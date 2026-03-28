@@ -1,0 +1,41 @@
+{
+  "network": {
+    "interface": "0.0.0.0",
+    "port": 47808,
+    "broadcastAddress": "255.255.255.255"
+  },
+  "defaults": {
+    "vendorId": 999,
+    "vendorName": "Simbol Simulator",
+    "simulationIntervalMs": 1000,
+    "valueRange": { "min": 0.0, "max": 100.0 },
+    "simulationPattern": "sine"
+  },
+  "devices": [
+    {
+      "instanceId": 1000,
+      "name": "SimDevice-1",
+      "description": "Simulated HVAC Controller",
+      "objects": {
+        "analog-input": { "count": 10, "simulationPattern": "sine", "valueRange": { "min": 60.0, "max": 80.0 } },
+        "analog-output": { "count": 5, "simulationPattern": "static", "defaultValue": 72.0 },
+        "analog-value": { "count": 5 },
+        "binary-input": { "count": 8, "simulationPattern": "random" },
+        "binary-output": { "count": 4 },
+        "binary-value": { "count": 4 },
+        "multi-state-input": { "count": 3, "numberOfStates": 4 },
+        "multi-state-output": { "count": 2, "numberOfStates": 3 },
+        "multi-state-value": { "count": 2, "numberOfStates": 5 }
+      }
+    },
+    {
+      "instanceId": 1001,
+      "name": "SimDevice-2",
+      "description": "Simulated Lighting Controller",
+      "objects": {
+        "binary-output": { "count": 20 },
+        "analog-value": { "count": 10 }
+      }
+    }
+  ]
+}
