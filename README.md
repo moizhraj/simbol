@@ -1,5 +1,13 @@
 # Simbol — Simulator for BACnet Object Layer
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![CI](https://github.com/moizhraj/simbol/actions/workflows/dotnet.yml/badge.svg)](https://github.com/moizhraj/simbol/actions/workflows/dotnet.yml)
+[![.NET 8](https://img.shields.io/badge/.NET-8.0-512BD4)](https://dotnet.microsoft.com/download/dotnet/8.0)
+[![GitHub release](https://img.shields.io/github/v/release/moizhraj/simbol?include_prereleases)](https://github.com/moizhraj/simbol/releases)
+[![GitHub issues](https://img.shields.io/github/issues/moizhraj/simbol)](https://github.com/moizhraj/simbol/issues)
+[![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/moizhraj/simbol/pulls)
+[![Contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg)](https://github.com/moizhraj/simbol/issues)
+
 A CLI-based BACnet/IP device simulator that spins up virtual BACnet devices from a JSON config file. Point it at a configuration, and Simbol creates fully functional BACnet devices on your network — complete with dynamic value simulation, COV subscriptions, and writable object support.
 
 ## Features
@@ -253,4 +261,4 @@ dotnet test
 
 ## License
 
-TBD
+MIT — see [LICENSE](LICENSE) for details.
